@@ -1,4 +1,11 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+"""
+Created on Mar 27 2017
+@author: pavle
+"""
+
 import scrapy
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 import re
@@ -8,7 +15,6 @@ from hrtencent.items import HrtencentItem
 from hrtencent import settings
 
 usr_list1 = []
-usr_list2 = []
 
 class hrtencent_xpath(scrapy.Spider):
     name = 'hrtencent-xpath'
@@ -16,6 +22,7 @@ class hrtencent_xpath(scrapy.Spider):
     start_urls = [
         'http://hr.tencent.com/position.php?keywords=%E7%AE%97%E6%B3%95&lid=0&tid=0',
     ]
+
     #rules = (Rule(SgmlLinkExtractor(allow=('/post/\d*\.html')),  callback = 'parse_img', follow=True),)
     #rules = (Rule(SgmlLinkExtractor(allow=('/position.php?keywords=%E7%AE%97%E6%B3%95&lid=0&tid=0&start=\d*\0')),  callback = 'parse', follow=True),)
     def parse(self, response):
@@ -36,8 +43,8 @@ class hrtencent_xpath(scrapy.Spider):
             yield scrapy.Request(response.urljoin(next_page_url))
 
     def sub_parse(self, response):
-        uer_sublist = usr_list[0]
-        usr_list.pop(0)
+        uer_sublist = usr_list1[0]
+        usr_list1.pop(0)
 
         item = HrtencentItem()
         item['job_title'] = uer_sublist[0]
@@ -45,4 +52,11 @@ class hrtencent_xpath(scrapy.Spider):
         item['location'] = uer_sublist[2]
         item['date'] = uer_sublist[3]
         item['job_jd'] = response.xpath('//ul[@class="squareli"]/li/text()').extract()
+        
+        #'item' is a list, should be converted to a char string. It will return error if insert a list.
+        a = ''
+        for job_jd in item['job_jd']:
+            a = a + job_jd
+        item['job_jd'] = a
+
         yield item
